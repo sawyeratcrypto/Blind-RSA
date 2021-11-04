@@ -57,7 +57,7 @@ public class Bob
 
             //now that we got an r that satisfies the restrictions described we can proceed with calculation of mu
 
-            BigInteger mu = ((r.modPow(e, N)).multiply(m)).mod(N); //Bob computes mu = H(msg) * r^e mod N
+            BigInteger mu = ((r.modPow(e, N)).multiply(m.modPow(e, N))).mod(N); //Bob computes mu = m^e * r^e mod N
 
             return mu;
 
@@ -114,6 +114,8 @@ public class Bob
 
             byte[] decodedBytes = new Base64().decode(bytes); // decode the bytes with Base64 decoding (remember we encoded with base64 earlier)
 
+            String decodedMessage = new String(decodedBytes);
+
             BigInteger sig = new BigInteger(decodedBytes); // create the BigInteger object based on the bytes of the signature
 
             BigInteger e = BlindRsa.alicePublic.getPublicExponent();//get the public exponent of Alice's key pair
@@ -126,13 +128,13 @@ public class Bob
 
             String initialMessage = new String(m.toByteArray()); //create a String based on the initial message we wished to get a signature on
 
-            if (signedMessage.equals(initialMessage)) //compare the two Strings, if they are equal the signature we got is a valid
+            if (decodedMessage.equals(initialMessage)) //compare the two Strings, if they are equal the signature we got is a valid
             {
-                System.out.println("Verification of signature completed successfully"); //print message for successful verification of the signature
+                System.out.println("Verification of message successfully"); //print message for successful verification of the signature
             } 
             else
             {
-                System.out.println("Verification of signature failed"); // print message for unsuccessful verification of the signature
+                System.out.println("Verification of message failed"); // print message for unsuccessful verification of the signature
             }
         } 
         catch (Exception e)
