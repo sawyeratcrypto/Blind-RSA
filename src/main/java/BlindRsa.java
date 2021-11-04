@@ -1,3 +1,4 @@
+import javax.crypto.Cipher;
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.interfaces.RSAPrivateCrtKey;
@@ -44,6 +45,22 @@ public class BlindRsa
 			System.out.println();
 			long elapsedTimeMillis = System.currentTimeMillis() - start;
 			System.out.println("Program executed in " + elapsedTimeMillis + " milliseconds");
+
+
+			// try to blind before the encryption
+			Cipher enCipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+			enCipher.init(Cipher.ENCRYPT_MODE, BlindRsa.alicePublic);
+			byte[] blindBeforeEncryptText =  Bob.m.multiply(Bob.r).mod(N).toByteArray();
+			byte[] ciphertext = enCipher.doFinal(blindBeforeEncryptText);
+
+			Cipher deCipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+			deCipher.init(Cipher.DECRYPT_MODE, BlindRsa.alicePrivate);
+			byte[] decrypted = deCipher.doFinal(ciphertext);
+			BigInteger unblind = Bob.r.modInverse(N).multiply(new BigInteger(decrypted)).mod(N);
+
+			String recovered = new String(unblind.toByteArray());
+			System.out.println("Recovered matches original " + recovered.equals(new String(Bob.m.toByteArray())));
+
 		}
 		catch (Exception e)
 		{
