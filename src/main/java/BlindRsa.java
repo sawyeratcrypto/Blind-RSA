@@ -1,6 +1,9 @@
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+
 import javax.crypto.Cipher;
 import java.math.BigInteger;
 import java.security.KeyPair;
+import java.security.Security;
 import java.security.interfaces.RSAPrivateCrtKey;
 import java.security.interfaces.RSAPublicKey;
 
@@ -22,6 +25,8 @@ public class BlindRsa
 
 	public static void main(String[] args)
 	{
+
+		Security.addProvider(new BouncyCastleProvider());
 		try
 		{
 			long start = System.currentTimeMillis(); //get current time in milliseconds
@@ -48,14 +53,15 @@ public class BlindRsa
 
 
 			// try to blind before the encryption
-			Cipher enCipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+			Cipher enCipher = Cipher.getInstance("RSA/NONE/PKCS1Padding");
 			enCipher.init(Cipher.ENCRYPT_MODE, BlindRsa.alicePublic);
 			byte[] blindBeforeEncryptText =  Bob.m.multiply(Bob.r).mod(N).toByteArray();
 			byte[] ciphertext = enCipher.doFinal(blindBeforeEncryptText);
 
-			Cipher deCipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+			Cipher deCipher = Cipher.getInstance("RSA/NONE/PKCS1Padding");
 			deCipher.init(Cipher.DECRYPT_MODE, BlindRsa.alicePrivate);
 			byte[] decrypted = deCipher.doFinal(ciphertext);
+
 			BigInteger unblind = Bob.r.modInverse(N).multiply(new BigInteger(decrypted)).mod(N);
 
 			String recovered = new String(unblind.toByteArray());
